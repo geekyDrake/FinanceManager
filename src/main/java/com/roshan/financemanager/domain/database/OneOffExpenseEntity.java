@@ -1,6 +1,6 @@
 package com.roshan.financemanager.domain.database;
 
-import com.roshan.financemanager.domain.Subscription;
+import com.roshan.financemanager.domain.dto.OneOffExpense;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,22 +10,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
-import java.util.Optional;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Entity
-public class SubscriptionEntity {
+public class OneOffExpenseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long subscriptionEntityId;
-    private String name;
+    private Long oneOffExpenseEntityId;
     private Date startDate;
-    private Long years;
-    private Long months;
+    private Date endDate;
+    private Long amount;
 
-    public SubscriptionEntity(Subscription s) {
-        this(null,s.getName(),s.getStartDate(),s.getYears().orElse(0L),s.getMonths());
+    public OneOffExpenseEntity(final OneOffExpense o){
+        this(null, o.getStartDate(),o.getRealEndDate(),o.getAmount());
     }
 }

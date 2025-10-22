@@ -1,6 +1,7 @@
 package com.roshan.financemanager.endpoints;
 
-import com.roshan.financemanager.domain.Subscription;
+import com.roshan.financemanager.domain.dto.MonthlySubscription;
+import com.roshan.financemanager.domain.dto.OneOffExpense;
 import com.roshan.financemanager.service.SubscriptionDatabaseManagerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +17,19 @@ public class Controller {
         return String.format("Hello %s!", name);
     }
 
-    @PostMapping(path = "/addSubscription", consumes = "application/json")
+    @PostMapping(path = "/addMonthlySubscription", consumes = "application/json")
     public void addMonthlySubscription(
-            @RequestBody Subscription newSubscription
+            @RequestBody MonthlySubscription newMonthlySubscription
     ) {
-        dbManagerService.saveSubscription(newSubscription);
+        newMonthlySubscription.validate();
+        dbManagerService.saveSubscription(newMonthlySubscription);
+    }
+
+    @PostMapping(path = "/addOneOffExpense", consumes = "application/json")
+    public void addOneOffExpense(
+            @RequestBody OneOffExpense newOneOffExpense
+    ) {
+        newOneOffExpense.validate();
+        dbManagerService.saveSubscription();
     }
 }
