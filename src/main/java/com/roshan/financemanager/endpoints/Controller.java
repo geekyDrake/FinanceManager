@@ -30,6 +30,6 @@ public class Controller {
             @RequestBody OneOffExpense newOneOffExpense
     ) {
         newOneOffExpense.validate();
-        dbManagerService.saveSubscription();
+        dbManagerService.saveExpense(newOneOffExpense);
     }
 }
