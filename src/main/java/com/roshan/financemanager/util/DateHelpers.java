@@ -25,20 +25,31 @@ public class DateHelpers {
     If subscription ends in current month, we want to pro-rata by start of the month, till end date
     Still slightly flawed as we divide by however many days there are in the month which is variable...will accept for now
      */
-    public static Long proRataMonth(final Long amount, final LocalDate givenDay, MONTH_TYPE monthType) {
+    public static Long proRataMonth(final Long monthlyAmount, final LocalDate givenDay, MONTH_TYPE monthType) {
+        final long daysIncluded = getNumberOfDaysToInclude(givenDay, monthType);
+
+        return multiplyUpDayRate(monthlyAmount, (long) givenDay.lengthOfMonth(), daysIncluded);
+    }
+
+    /*
+    If subscription starts in current month, we want to pro-rata by start_date till end of the month
+    If subscription ends in current month, we want to pro-rata by start of the month, till end date
+    Still slightly flawed as we divide by however many days there are in the year which is variable...will accept for now
+     */
+    public static Long proRataYearsToMonth(final Long yearlyAmount, final LocalDate givenDay, MONTH_TYPE monthType) {
+        final long daysIncluded = getNumberOfDaysToInclude(givenDay, monthType);
+
+        return multiplyUpDayRate(yearlyAmount, (long) givenDay.lengthOfYear(), daysIncluded);
+    }
+
+    private static long getNumberOfDaysToInclude(LocalDate givenDay, MONTH_TYPE monthType) {
         final long daysBetweenStartAndEnd = monthType.equals(MONTH_TYPE.START)
                 ? ChronoUnit.DAYS.between(givenDay, givenDay.withDayOfMonth(givenDay.lengthOfMonth())) : // exclusive of final day
                 ChronoUnit.DAYS.between(givenDay.withDayOfMonth(1), givenDay) + 1; // inclusive of final day
-
-        return multiplyUpDayRate(amount, (long) givenDay.lengthOfMonth(), daysBetweenStartAndEnd);
+        return daysBetweenStartAndEnd;
     }
 
-    public static Long proRataAmount(final Long amount, final LocalDate startDate, final LocalDate endDate, final Long days) {
-        final var daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
-        return multiplyUpDayRate(amount, daysBetween, days);
-    }
-
-    public static Long multiplyUpDayRate(final Long amount, final Long daysDenominator, final Long daysAttributable) {
+    private static Long multiplyUpDayRate(final Long amount, final Long daysDenominator, final Long daysAttributable) {
         return (amount / daysDenominator) * daysAttributable;
     }
 

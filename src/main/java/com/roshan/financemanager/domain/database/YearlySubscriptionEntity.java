@@ -23,15 +23,10 @@ public class YearlySubscriptionEntity extends TimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private final Long subscriptionEntityId;
-    private final String name;
-    // Assume amount is for an arbitary year if no endDate is given (i.e. divide by 12)
-    private final Long amount;
 
     public YearlySubscriptionEntity(final String name, final Long amount, final Date endDate, final Date startDate){
-        super(endDate, startDate);
+        super(name, amount, endDate, startDate);
         this.subscriptionEntityId = null;
-        this.name = name;
-        this.amount = amount;
     }
 
     public YearlySubscriptionEntity(final YearlySubscription s) {

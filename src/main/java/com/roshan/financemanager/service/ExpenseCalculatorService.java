@@ -26,29 +26,15 @@ public class ExpenseCalculatorService {
 
     private Long subscriptionAmount(final MonthlySubscriptionEntity monthly, final YearlySubscriptionEntity yearly) {
         Long runningTotal = 0L;
-        final var monthlySubscriptionEndDate = ofNullable(monthly.getEndDate()).map(DateHelpers::convertDateToLocalDate);
-        final var yearlySubscriptionEndDate = ofNullable(yearly.getEndDate()).map(DateHelpers::convertDateToLocalDate);
         final var today = LocalDate.now();
 
-        runningTotal += getMonthlyTotal(monthly, monthlySubscriptionEndDate, today);
-        runningTotal += getYearlyTotalMonthEquivalent(yearly, yearlySubscriptionEndDate, today);
+        runningTotal += getMonthlyTotalProRata(monthly, today);
+        runningTotal += getYearlyEquivalentMonthTotalProRata(yearly, today);
 
         return runningTotal;
     }
 
     /*
-    Logic is flawed:
-        - if we have a monthly subscription of £12 with start_date 15th of March and end_date 15th May, by this logic:
-            - March total is: £12
-            - April total is: £12
-            - May total (given it's before 15th) will show: £12
-            - May total (given it's after 15th) will show: £0
-        - if we have a yearly subscription of £120 with start_date 15th March 2020 and end_date 15th March 2021, by this logic:
-            - March 2020 total is: £10
-            - Every proceeding month total till end_date is £10
-            - March 2021 pre 15th total is: £10
-            - March 2021 post 15th total is: £0
-
      Need logic that handles end_date in current month:
         - Could check if end_date is in current month, if so attribute £0. This means first month (15 days in our example) would be attributed the full month's cost while the final month has 0 cost
         - Could pro-rata and accept first and last month's will share a whole month's amount
@@ -59,18 +45,61 @@ public class ExpenseCalculatorService {
             - Avoids clunky end month handling
             - However will have jumps/dives in monthly cost
      */
-    private Long getYearlyTotalMonthEquivalent(final YearlySubscriptionEntity yearly, final Optional<LocalDate> yearlySubscriptionEndDate, final LocalDate today) {
-        if (yearlySubscriptionEndDate.isPresent() && yearlySubscriptionEndDate.get().isBefore(today)) {
+
+    /*
+    Yearly logic:
+    - If start date is present and in current month: return pro-rata amount (yearly/365 * #days where #days = start_date to end of month)
+    - If end date is not present return monthly amount (yearly/365 * #days_in_month)
+    - If end date is present and in current month: return pro-rata amount (yearly/365 * #days where #days = start of month to end_date)
+    - If end date is present and is before beginning of the month, return 0 else return monthly amount (yearly/365 * #days_in_month)
+     */
+    private Long getYearlyEquivalentMonthTotalProRata(final YearlySubscriptionEntity yearly, final LocalDate today) {
+        if (yearly.parseStartDate().isPresent() && isDateInCurrentMonth(yearly.parseStartDate().get(), today)) {
+            return proRataYearsToMonth(yearly.getAmount(), yearly.parseStartDate().get(), MONTH_TYPE.START);
+        }
+        // Flawed as number of days in year can vary but acceptable for now
+        final var monthlyEquivalentAmount = (yearly.getAmount() / today.lengthOfYear()) * today.lengthOfMonth();
+
+        if (yearly.parseEndDate().isEmpty()) {
+            return monthlyEquivalentAmount;
+        }
+
+        if (yearly.parseEndDate().isPresent() && isDateInCurrentMonth(yearly.parseEndDate().get(), today)) {
+            return proRataYearsToMonth(yearly.getAmount(), yearly.parseEndDate().get(), MONTH_TYPE.END);
+        }
+
+        if (yearly.parseEndDate().get().isBefore(today)) {
             return 0L;
         }
-        return yearlySubscriptionEndDate.isPresent() ? yearly.getAmount() / 12 : 0L;
+
+        return monthlyEquivalentAmount;
     }
 
-    private static Long getMonthlyTotal(final MonthlySubscriptionEntity monthly, final Optional<LocalDate> monthlySubscriptionEndDate, final LocalDate today) {
-        if (monthlySubscriptionEndDate.isEmpty() || monthlySubscriptionEndDate.get().isAfter(today)) {
+    /*
+    Monthly logic:
+    - If start date is present and in current month: return pro-rata amount
+    - If end date is not present return monthly amount
+    - If end date is present and in current month: return pro-rata amount
+    - If end date is present and is before beginning of the month, return 0 else return monthly amount
+     */
+    private static Long getMonthlyTotalProRata(final MonthlySubscriptionEntity monthly, final LocalDate today) {
+        if (monthly.parseStartDate().isPresent() && isDateInCurrentMonth(monthly.parseStartDate().get(), today)) {
+            return proRataMonth(monthly.getAmount(), monthly.parseStartDate().get(), MONTH_TYPE.START);
+        }
+
+        if (monthly.parseEndDate().isEmpty()) {
             return monthly.getAmount();
         }
-        return 0L;
+
+        if (monthly.parseEndDate().isPresent() && isDateInCurrentMonth(monthly.parseEndDate().get(), today)) {
+            return proRataMonth(monthly.getAmount(), monthly.parseEndDate().get(), MONTH_TYPE.END);
+        }
+
+        if (monthly.parseEndDate().get().isBefore(today)) {
+            return 0L;
+        }
+
+        return monthly.getAmount();
     }
 
     /* Should take in oneoffexpense and output the month equivalent (30 days)
@@ -83,35 +112,5 @@ public class ExpenseCalculatorService {
         return 0L;
     }
 
-    /* Logic is slightly broken:
-    - if we have a monthly subscription of £12 with start_date 15th of March and end_date 15th May, by this logic:
-        - March monthly total is £12 -> this should technically be £6
-        - April monthly total is £12
-        - May monthly total is £6
-     - if we have a yearly subscription of £120 with start_date 15th March 2020 and end_date 15th March 2021, by this logic:
-        - March 2020 total is £10 -> this should technically be £5
-        - Every month before March 2021 is £10
-        - March 2021 total is £5
-     */
-    private Long getYearlyTotalProRata(final YearlySubscriptionEntity yearly, final Optional<LocalDate> yearlySubscriptionEndDate, final LocalDate today) {
-        if (yearlySubscriptionEndDate.isPresent() && yearlySubscriptionEndDate.get().isBefore(today)) {
-            return 0L;
-        } else if (yearlySubscriptionEndDate.isPresent()) {
-            return isDateInCurrentMonth(yearlySubscriptionEndDate.get(), today) ? proRataMonth(yearly.getAmount() / 12, today, MONTH_TYPE.END) : yearly.getAmount() / 12;
-        }
-        return yearly.getAmount() / 12;
-    }
 
-    /*
-
-     */
-    private static Long getMonthlyTotalProRata(final MonthlySubscriptionEntity monthly, final Optional<LocalDate> monthlySubscriptionEndDate, final LocalDate today) {
-        if (monthlySubscriptionEndDate.isEmpty()) { return monthly.getAmount(); }
-        if (monthlySubscriptionEndDate.get().isBefore(today)) { return 0L; }
-
-        if (monthlySubscriptionEndDate.get().isAfter(today)) {
-            return isDateInCurrentMonth(monthlySubscriptionEndDate.get(), today) ? proRataMonth(monthly.getAmount(), today, MONTH_TYPE.END) : monthly.getAmount();
-        }
-        return 0L;
-    }
 }

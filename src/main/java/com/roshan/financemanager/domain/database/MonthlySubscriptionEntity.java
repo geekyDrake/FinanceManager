@@ -16,14 +16,10 @@ public class MonthlySubscriptionEntity extends TimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private final Long subscriptionEntityId;
-    private final String name;
-    private final Long amount;
 
     public MonthlySubscriptionEntity(final String name, final Long amount, final Date endDate, final Date startDate){
-        super(endDate, startDate);
+        super(name, amount, endDate, startDate);
         this.subscriptionEntityId = null;
-        this.name = name;
-        this.amount = amount;
     }
 
     public MonthlySubscriptionEntity(final MonthlySubscription s) {
