@@ -3,30 +3,58 @@ package com.roshan.financemanager.util;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 
 public class DateHelpers {
 
-    public static LocalDate convertDateToLocalDate(final Date date){
-        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-    }
+  public enum MONTH_TYPE {
+    START,
+    END
+  }
 
-    public static boolean isDateInCurrentMonth(final LocalDate givenDate, final LocalDate today){
-        return givenDate.getYear() == today.getYear() && givenDate.getMonth() == today.getMonth();
-    }
+  public static LocalDate convertDateToLocalDate(final Date date) {
+    return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+  }
 
-    public static Long proRataMonth(final Long amount, final LocalDate givenDay){
-        return proRataByNumberOfDays(amount, (long) givenDay.lengthOfMonth(), ChronoUnit.DAYS.between(givenDay.withDayOfMonth(1), givenDay) + 1);
-    }
+  public static boolean isDateInCurrentMonth(final LocalDate givenDate, final LocalDate today) {
+    return givenDate.getYear() == today.getYear() && givenDate.getMonth() == today.getMonth();
+  }
 
-    public static Long proRataAmount(final Long amount, final LocalDate startDate, final LocalDate endDate, final Long days){
-        final var daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
-        return proRataByNumberOfDays(amount, daysBetween, days);
-    }
+  /*
+  If subscription starts in current month, we want to pro-rata by start_date till end of the month
+  If subscription ends in current month, we want to pro-rata by start of the month, till end date
+  Still slightly flawed as we divide by however many days there are in the month which is variable...will accept for now
+   */
+  public static Long proRataMonth(final Long monthlyAmount, final LocalDate givenDay,
+      MONTH_TYPE monthType) {
+    final long daysIncluded = getNumberOfDaysToInclude(givenDay, monthType);
 
-    public static Long proRataByNumberOfDays(final Long amount, final Long daysInBetweenStarAndEnd, final Long daysTillGivenDate){
-        return (amount / daysInBetweenStarAndEnd) * daysTillGivenDate;
-    }
+    return multiplyUpDayRate(monthlyAmount, (long) givenDay.lengthOfMonth(), daysIncluded);
+  }
+
+  /*
+  If subscription starts in current month, we want to pro-rata by start_date till end of the month
+  If subscription ends in current month, we want to pro-rata by start of the month, till end date
+  Still slightly flawed as we divide by however many days there are in the year which is variable...will accept for now
+   */
+  public static Long proRataYearsToMonth(final Long yearlyAmount, final LocalDate givenDay,
+      MONTH_TYPE monthType) {
+    final long daysIncluded = getNumberOfDaysToInclude(givenDay, monthType);
+
+    return multiplyUpDayRate(yearlyAmount, (long) givenDay.lengthOfYear(), daysIncluded);
+  }
+
+  private static long getNumberOfDaysToInclude(LocalDate givenDay, MONTH_TYPE monthType) {
+    final long daysBetweenStartAndEnd = monthType.equals(MONTH_TYPE.START)
+        // exclusive of final day
+        ? ChronoUnit.DAYS.between(givenDay, givenDay.withDayOfMonth(givenDay.lengthOfMonth())) :
+        ChronoUnit.DAYS.between(givenDay.withDayOfMonth(1), givenDay) + 1; // inclusive of final day
+    return daysBetweenStartAndEnd;
+  }
+
+  public static Long multiplyUpDayRate(final Long amount, final Long daysDenominator,
+      final Long daysAttributable) {
+    return (amount / daysDenominator) * daysAttributable;
+  }
 
 }
