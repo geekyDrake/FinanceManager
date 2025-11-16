@@ -5,25 +5,28 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.util.Date;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Entity
-public class MonthlySubscriptionEntity {
+public class MonthlySubscriptionEntity extends TimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long subscriptionEntityId;
-    private String name;
-    private Long amount;
-    private Date endDate;
+    private final Long subscriptionEntityId;
+    private final String name;
+    private final Long amount;
+
+    public MonthlySubscriptionEntity(final String name, final Long amount, final Date endDate, final Date startDate){
+        super(endDate, startDate);
+        this.subscriptionEntityId = null;
+        this.name = name;
+        this.amount = amount;
+    }
 
     public MonthlySubscriptionEntity(final MonthlySubscription s) {
-        this(null,s.getName(),s.getAmount(),s.getEndDate());
+        this(s.getName(),s.getAmount(),s.getEndDate(), s.getStartDate());
     }
 }

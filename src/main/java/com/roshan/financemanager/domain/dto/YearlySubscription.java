@@ -17,6 +17,11 @@ public class YearlySubscription {
     @JsonProperty("end_date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date endDate;
+    // If no start date given, subscription started long ago
+    @Nullable
+    @JsonProperty("start_date")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private Date startDate;
 
     public void validate() {
         if(endDate != null && endDate.before(new Date())){ throw new RuntimeException("Yearly subscription no longer active"); }

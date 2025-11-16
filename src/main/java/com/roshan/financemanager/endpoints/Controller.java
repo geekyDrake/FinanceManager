@@ -2,6 +2,7 @@ package com.roshan.financemanager.endpoints;
 
 import com.roshan.financemanager.domain.dto.MonthlySubscription;
 import com.roshan.financemanager.domain.dto.OneOffExpense;
+import com.roshan.financemanager.domain.dto.YearlySubscription;
 import com.roshan.financemanager.service.SubscriptionDatabaseManagerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,14 @@ public class Controller {
     ) {
         newMonthlySubscription.validate();
         dbManagerService.saveSubscription(newMonthlySubscription);
+    }
+
+    @PostMapping(path = "/addYearlySubscription", consumes = "application/json")
+    public void addYearlySubscription(
+            @RequestBody YearlySubscription newYearlySubscription
+    ) {
+        newYearlySubscription.validate();
+        dbManagerService.saveSubscription(newYearlySubscription);
     }
 
     @PostMapping(path = "/addOneOffExpense", consumes = "application/json")

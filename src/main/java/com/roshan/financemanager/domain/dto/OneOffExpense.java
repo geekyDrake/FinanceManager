@@ -32,20 +32,28 @@ public class OneOffExpense {
     private Long amount;
 
     /*
-     Prioritise endDate over years/months if both are given
+    Priority:
+        - startDate to endDate
+        - If no endDate given, must have startDate, years and months
      */
     public void validate(){
-        if(years == null && months == null && endDate == null){
+        if (startDate == null) { throw new RuntimeException("No start date given"); }
+        // case: no endDate AND no years/months
+        if (years == null && months == null && endDate == null) {
             throw new RuntimeException("No amortisation period given");
         }
-        if((endDate != null) && (years != null || months != null)){
+        // case: have endDate -> remove any years/months given
+        if ((endDate != null) && (years != null || months != null)) {
             setYears(null);
             setMonths(null);
         }
     }
 
     public Date getRealEndDate(){
+        // return endDate if available
         if(endDate!=null) { return this.endDate; }
+
+        // return calculated endDate
         Calendar c = Calendar.getInstance();
         c.setTime(startDate);
         if(years != null ){

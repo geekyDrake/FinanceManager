@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.Date;
-import java.util.Optional;
 
 @AllArgsConstructor
 @Getter
@@ -18,6 +17,11 @@ public class MonthlySubscription {
     @JsonProperty("end_date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date endDate;
+    // If no start date given, assume, subscription started long ago
+    @Nullable
+    @JsonProperty("start_date")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private Date startDate;
 
     public void validate() {
         if(endDate != null && endDate.before(new Date())){ throw new RuntimeException("Monthly subscription no longer active"); }
