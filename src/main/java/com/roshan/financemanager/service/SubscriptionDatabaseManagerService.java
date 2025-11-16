@@ -15,23 +15,23 @@ import org.springframework.stereotype.Service;
 @Service
 public class SubscriptionDatabaseManagerService {
 
-    @Autowired
-    private MonthlySubscriptionDB monthlySubscriptionDB;
-    @Autowired
-    private YearlySubscriptionDB yearlySubscriptionDB;
-    @Autowired
-    private OneOffExpenseDB oneOffExpenseDB;
+  @Autowired
+  private MonthlySubscriptionDB monthlySubscriptionDB;
+  @Autowired
+  private YearlySubscriptionDB yearlySubscriptionDB;
+  @Autowired
+  private OneOffExpenseDB oneOffExpenseDB;
 
-    public void saveSubscription(final MonthlySubscription monthlySubscription) {
-        monthlySubscriptionDB.save(new MonthlySubscriptionEntity(monthlySubscription));
-    }
+  public void saveSubscription(final MonthlySubscription monthlySubscription) {
+    monthlySubscriptionDB.save(new MonthlySubscriptionEntity(monthlySubscription));
+  }
 
-    public void saveSubscription(final YearlySubscription yearlySubscription) {
-        yearlySubscriptionDB.save(new YearlySubscriptionEntity(yearlySubscription));
-    }
+  public void saveSubscription(final YearlySubscription yearlySubscription) {
+    yearlySubscriptionDB.save(new YearlySubscriptionEntity(yearlySubscription));
+  }
 
-    public void saveExpense(final OneOffExpense oneOffExpense) {
-        oneOffExpenseDB.save(new OneOffExpenseEntity(oneOffExpense));
-    }
+  public void saveExpense(final OneOffExpense oneOffExpense) {
+    oneOffExpenseDB.save(new OneOffExpenseEntity(oneOffExpense));
+  }
 
 }

@@ -11,19 +11,22 @@ import java.util.Date;
 @AllArgsConstructor
 @Getter
 public class MonthlySubscription {
-    private String name;
-    private Long amount;
-    @Nullable
-    @JsonProperty("end_date")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private Date endDate;
-    // If no start date given, assume, subscription started long ago
-    @Nullable
-    @JsonProperty("start_date")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private Date startDate;
 
-    public void validate() {
-        if(endDate != null && endDate.before(new Date())){ throw new RuntimeException("Monthly subscription no longer active"); }
+  private String name;
+  private Long amount;
+  @Nullable
+  @JsonProperty("end_date")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  private Date endDate;
+  // If no start date given, assume, subscription started long ago
+  @Nullable
+  @JsonProperty("start_date")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  private Date startDate;
+
+  public void validate() {
+    if (endDate != null && endDate.before(new Date())) {
+      throw new RuntimeException("Monthly subscription no longer active");
     }
+  }
 }

@@ -20,16 +20,18 @@ import static java.util.Optional.ofNullable;
 @Getter
 @Entity
 public class YearlySubscriptionEntity extends TimeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private final Long subscriptionEntityId;
 
-    public YearlySubscriptionEntity(final String name, final Long amount, final Date endDate, final Date startDate){
-        super(name, amount, endDate, startDate);
-        this.subscriptionEntityId = null;
-    }
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private final Long subscriptionEntityId;
 
-    public YearlySubscriptionEntity(final YearlySubscription s) {
-        this(s.getName(),s.getAmount(),s.getEndDate(), s.getStartDate());
-    }
+  public YearlySubscriptionEntity(final String name, final Long amount, final Date endDate,
+      final Date startDate) {
+    super(name, amount, endDate, startDate);
+    this.subscriptionEntityId = null;
+  }
+
+  public YearlySubscriptionEntity(final YearlySubscription s) {
+    this(s.getName(), s.getAmount(), s.getEndDate(), s.getStartDate());
+  }
 }

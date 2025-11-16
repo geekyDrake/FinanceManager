@@ -13,16 +13,18 @@ import java.util.Date;
 @Getter
 @Entity
 public class MonthlySubscriptionEntity extends TimeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private final Long subscriptionEntityId;
 
-    public MonthlySubscriptionEntity(final String name, final Long amount, final Date endDate, final Date startDate){
-        super(name, amount, endDate, startDate);
-        this.subscriptionEntityId = null;
-    }
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private final Long subscriptionEntityId;
 
-    public MonthlySubscriptionEntity(final MonthlySubscription s) {
-        this(s.getName(),s.getAmount(),s.getEndDate(), s.getStartDate());
-    }
+  public MonthlySubscriptionEntity(final String name, final Long amount, final Date endDate,
+      final Date startDate) {
+    super(name, amount, endDate, startDate);
+    this.subscriptionEntityId = null;
+  }
+
+  public MonthlySubscriptionEntity(final MonthlySubscription s) {
+    this(s.getName(), s.getAmount(), s.getEndDate(), s.getStartDate());
+  }
 }

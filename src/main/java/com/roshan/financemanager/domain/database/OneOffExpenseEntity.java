@@ -16,15 +16,16 @@ import java.util.Date;
 @Getter
 @Entity
 public class OneOffExpenseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long oneOffExpenseEntityId;
-    private String name;
-    private Date startDate;
-    private Date endDate;
-    private Long amount;
 
-    public OneOffExpenseEntity(final OneOffExpense o){
-        this(null,o.getName(), o.getStartDate(),o.getRealEndDate(),o.getAmount());
-    }
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private Long oneOffExpenseEntityId;
+  private String name;
+  private Date startDate;
+  private Date endDate;
+  private Long amount;
+
+  public OneOffExpenseEntity(final OneOffExpense o) {
+    this(null, o.getName(), o.getStartDate(), o.getRealEndDate(), o.getAmount());
+  }
 }
