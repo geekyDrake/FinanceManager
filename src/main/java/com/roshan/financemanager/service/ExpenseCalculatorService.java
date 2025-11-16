@@ -3,36 +3,38 @@ package com.roshan.financemanager.service;
 import com.roshan.financemanager.domain.database.MonthlySubscriptionEntity;
 import com.roshan.financemanager.domain.database.OneOffExpenseEntity;
 import com.roshan.financemanager.domain.database.YearlySubscriptionEntity;
-import com.roshan.financemanager.util.DateHelpers;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
-import java.util.Optional;
 
 import static com.roshan.financemanager.util.DateHelpers.*;
-import static java.util.Optional.ofNullable;
 
 public class ExpenseCalculatorService {
 
   @Autowired
   private SubscriptionDatabaseManagerService dbService;
 
-  public Long calculateEquivalentMonthlyExpense() {
-    Long runningTotal = 0L;
-    // Placeholder null values - populate with real information. Maybe abstract the DB objects to domain objects if bothered
-    runningTotal += subscriptionAmount(null, null);
-    return runningTotal;
-  }
-
-  private Long subscriptionAmount(final MonthlySubscriptionEntity monthly,
-      final YearlySubscriptionEntity yearly) {
-    Long runningTotal = 0L;
+  // Ideally I wouldn't work with the DB objects directly, but it's not worth going back and changing to some domain level object now
+  public Long calculateEquivalentMonthlyExpense(
+      List<MonthlySubscriptionEntity> monthlySubscriptions,
+      List<YearlySubscriptionEntity> yearlySubscriptions,
+      List<OneOffExpenseEntity> oneOffExpenses) {
+    AtomicReference<Long> runningTotal = new AtomicReference<>(0L);
     final var today = LocalDate.now();
 
-    runningTotal += getMonthlyTotalProRata(monthly, today);
-    runningTotal += getYearlyEquivalentMonthTotalProRata(yearly, today);
+    monthlySubscriptions.forEach(sub -> runningTotal.updateAndGet(
+        rt -> rt + getMonthlyTotalProRata(sub, today)));
 
-    return runningTotal;
+    yearlySubscriptions.forEach(sub -> runningTotal.updateAndGet(
+        rt -> rt + getYearlyEquivalentMonthTotalProRata(sub, today)));
+
+    oneOffExpenses.forEach(expense -> runningTotal.updateAndGet(
+        rt -> rt + oneOffExpenseMonthlyEquivalent(expense, today)));
+
+    return runningTotal.get();
   }
 
     /*
@@ -112,14 +114,36 @@ public class ExpenseCalculatorService {
   }
 
   /* Should take in oneoffexpense and output the month equivalent (30 days)
+  OneOff logic:
+  - If start date is in current month: return pro-rata amount
+  - If end date is in current month: return pro-rata amount
+  - If end date is before beginning of the month, return 0 else return monthly amount
       - check date is after today
       - Get daily rate (days between)
       - Multiply daily rate by however many days in current month
    */
-  private Long oneOffExpenseMonthlyEquivalent(final OneOffExpenseEntity oneOffExpense) {
+  private Long oneOffExpenseMonthlyEquivalent(final OneOffExpenseEntity oneOffExpense,
+      final LocalDate today) {
+    final var expensePeriodDays = ChronoUnit.DAYS.between(oneOffExpense.getStartDate(),
+        oneOffExpense.getEndDate());
+    if (isDateInCurrentMonth(oneOffExpense.getStartDate(), today)) {
+      return multiplyUpDayRate(oneOffExpense.getAmount(),
+          expensePeriodDays,
+          ChronoUnit.DAYS.between(oneOffExpense.getStartDate(), today.withDayOfMonth(
+              today.lengthOfMonth())));
+    }
 
-    return 0L;
+    if (isDateInCurrentMonth(oneOffExpense.getEndDate(), today)) {
+      return multiplyUpDayRate(oneOffExpense.getAmount(),
+          expensePeriodDays,
+          ChronoUnit.DAYS.between(today.withDayOfMonth(1), oneOffExpense.getEndDate()));
+    }
+
+    if (oneOffExpense.getEndDate().isBefore(today)) {
+      return 0L;
+    }
+
+    return multiplyUpDayRate(oneOffExpense.getAmount(), (long) today.lengthOfYear(),
+        (long) today.lengthOfMonth());
   }
-
-
 }

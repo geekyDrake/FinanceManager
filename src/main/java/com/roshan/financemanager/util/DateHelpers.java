@@ -46,13 +46,13 @@ public class DateHelpers {
 
   private static long getNumberOfDaysToInclude(LocalDate givenDay, MONTH_TYPE monthType) {
     final long daysBetweenStartAndEnd = monthType.equals(MONTH_TYPE.START)
-        ? ChronoUnit.DAYS.between(givenDay, givenDay.withDayOfMonth(givenDay.lengthOfMonth())) :
         // exclusive of final day
+        ? ChronoUnit.DAYS.between(givenDay, givenDay.withDayOfMonth(givenDay.lengthOfMonth())) :
         ChronoUnit.DAYS.between(givenDay.withDayOfMonth(1), givenDay) + 1; // inclusive of final day
     return daysBetweenStartAndEnd;
   }
 
-  private static Long multiplyUpDayRate(final Long amount, final Long daysDenominator,
+  public static Long multiplyUpDayRate(final Long amount, final Long daysDenominator,
       final Long daysAttributable) {
     return (amount / daysDenominator) * daysAttributable;
   }
